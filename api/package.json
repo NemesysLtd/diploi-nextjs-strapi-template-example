@@ -1,16 +1,27 @@
 {
-  "name": "directus",
+  "name": "api",
   "private": true,
+  "description": "A Strapi application",
   "scripts": {
-    "dev": "directus start",
-    "start": "directus start",
-    "clean": "curl -X POST \"http://localhost:$PORT/utils/cache/clear\" && supervisorctl stop api && rm -rf node_modules/"
+    "dev": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "clean": "supervisorctl stop api && rm -rf node_modules/"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "directus": "9.2.2",
-    "pg": "8.7.1"
-  }
+    "@strapi/design-system": "^0.0.1-alpha.70",
+    "@strapi/plugin-i18n": "4.0.0",
+    "@strapi/plugin-users-permissions": "4.0.0",
+    "@strapi/strapi": "4.0.0",
+    "sqlite3": "5.0.2"
+  },
+  "strapi": {
+    "uuid": "cd434ee8-27ac-4a3a-a5d6-474c80e4d4b8"
+  },
+  "engines": {
+    "node": ">=12.x.x <=16.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
 }
