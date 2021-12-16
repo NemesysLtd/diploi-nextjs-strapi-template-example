@@ -10,5 +10,9 @@
       "username": "strapi",
       "password": "strapi"
     }
+  ],
+  "remote.SSH.defaultExtensions": [
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg"
   ]
 }
