@@ -3,7 +3,7 @@ const fetchAPI = async <T>(
   body: { [key: string]: any } | null = null
 ): Promise<T> => {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api${path}`,
+    `https://${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api${path}`,
     {
       method: body ? 'POST' : 'GET',
       headers: {
