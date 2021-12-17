@@ -11,7 +11,7 @@
       "password": "strapi"
     }
   ],
-  "remote.SSH.defaultExtensions": [
+  "recommendations": [
     "mtxr.sqltools",
     "mtxr.sqltools-driver-pg"
   ]
