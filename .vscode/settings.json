@@ -10,9 +10,5 @@
       "username": "postgres",
       "password": "postgres"
     }
-  ],
-  "recommendations": [
-    "mtxr.sqltools",
-    "mtxr.sqltools-driver-pg"
   ]
 }
