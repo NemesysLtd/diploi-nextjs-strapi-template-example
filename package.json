@@ -1,5 +1,5 @@
 {
-  "name": "diploi-nextjs-directus-template-example",
+  "name": "diploi-nextjs-strapi-template-example",
   "version": "1.0.0",
   "description": "This package.json is used for top level helper commands that execute commands in both api & www directories.",
   "scripts": {
