@@ -89,21 +89,31 @@ const getWWWStatus = async () => {
 };
 
 const getPostgresStatus = async () => {
+  const commonStatus = {
+    identifier: 'postgres',
+    name: 'PostgreSQL',
+    description: 'PostgreSQL database',
+    items: [],
+  };
+
   try {
     const postgresResponse = (await shellExec('pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT')).stdout;
     if (postgresResponse && postgresResponse.includes('accepting connections')) {
       return {
+        ...commonStatus,
         status: Status.GREEN,
         message: 'PostgreSQL is running',
       };
     }
 
     return {
+      ...commonStatus,
       status: Status.RED,
       message: 'PostgreSQL is not responding',
     };
   } catch {
     return {
+      ...commonStatus,
       status: Status.RED,
       message: 'PostgreSQL is not responding',
     };
@@ -111,21 +121,31 @@ const getPostgresStatus = async () => {
 };
 
 const getRedisStatus = async () => {
+  const commonStatus = {
+    identifier: 'redis',
+    name: 'Redis',
+    description: 'Redis cache',
+    items: [],
+  };
+
   try {
-    const redisResponse = (await shellExec('(printf "AUTH $REDIS_PASS\r\n";) | nc $REDIS_HOST $REDIS_PORT')).stdout;
-    if (redisResponse && redisResponse.includes('PONG')) {
+    const redisResponse = (await shellExec('(printf "AUTH $REDIS_PASS\r\n";) | nc -q 1 $REDIS_HOST $REDIS_PORT')).stdout;
+    if (redisResponse && redisResponse.includes('OK')) {
       return {
+        ...commonStatus,
         status: Status.GREEN,
         message: 'Redis is running',
       };
     }
 
     return {
+      ...commonStatus,
       status: Status.RED,
       message: 'Redis is not responding',
     };
   } catch {
     return {
+      ...commonStatus,
       status: Status.RED,
       message: 'Redis is not responding',
     };
