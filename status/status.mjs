@@ -50,7 +50,7 @@ const getAPIStatus = async () => {
     if (strapiResponse && strapiResponse.error?.message === 'Not Found') {
       return {
         status: Status.GREEN,
-        message: 'Strapi API is running',
+        message: '',
       };
     }
 
@@ -72,7 +72,7 @@ const getWWWStatus = async () => {
     if (nextjsResponse && nextjsResponse.includes('__NEXT_DATA__')) {
       return {
         status: Status.GREEN,
-        message: 'Next.js is running',
+        message: '',
       };
     }
 
@@ -102,7 +102,7 @@ const getPostgresStatus = async () => {
       return {
         ...commonStatus,
         status: Status.GREEN,
-        message: 'PostgreSQL is running',
+        message: '',
       };
     }
 
@@ -134,7 +134,7 @@ const getRedisStatus = async () => {
       return {
         ...commonStatus,
         status: Status.GREEN,
-        message: 'Redis is running',
+        message: '',
       };
     }
 
@@ -189,6 +189,7 @@ const getStatus = async () => {
     description: 'Traefik proxy routing Strapi & Next.js traffic',
     items: [],
     ...proxyProcessStatus,
+    message: proxyProcessStatus.status === Status.GREEN ? '' : proxyProcessStatus.message,
   };
 
   const postgresStatus = await getPostgresStatus();
