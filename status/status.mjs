@@ -88,6 +88,50 @@ const getWWWStatus = async () => {
   }
 };
 
+const getPostgresStatus = async () => {
+  try {
+    const postgresResponse = (await shellExec('pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT')).stdout;
+    if (postgresResponse && postgresResponse.includes('accepting connections')) {
+      return {
+        status: Status.GREEN,
+        message: 'PostgreSQL is running',
+      };
+    }
+
+    return {
+      status: Status.RED,
+      message: 'PostgreSQL is not responding',
+    };
+  } catch {
+    return {
+      status: Status.RED,
+      message: 'PostgreSQL is not responding',
+    };
+  }
+};
+
+const getRedisStatus = async () => {
+  try {
+    const redisResponse = (await shellExec('(printf "AUTH $REDIS_PASS\r\n";) | nc $REDIS_HOST $REDIS_PORT')).stdout;
+    if (redisResponse && redisResponse.includes('PONG')) {
+      return {
+        status: Status.GREEN,
+        message: 'Redis is running',
+      };
+    }
+
+    return {
+      status: Status.RED,
+      message: 'Redis is not responding',
+    };
+  } catch {
+    return {
+      status: Status.RED,
+      message: 'Redis is not responding',
+    };
+  }
+};
+
 const getStatus = async () => {
   const apiProcessStatus = await getSupervisorStatus('Strapi', 'api');
 
@@ -127,9 +171,12 @@ const getStatus = async () => {
     ...proxyProcessStatus,
   };
 
+  const postgresStatus = await getPostgresStatus();
+  const redisStatus = await getRedisStatus();
+
   const status = {
     diploiStatusVersion: 1,
-    items: [apiStatus, wwwStatus, proxyStatus],
+    items: [apiStatus, wwwStatus, proxyStatus, postgresStatus, redisStatus],
   };
 
   return status;
