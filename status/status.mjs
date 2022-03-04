@@ -23,7 +23,7 @@ const processStatusToMessage = (name, status) => {
   if (status === Status.GREEN) return `${name} process is running`;
   if (status === Status.YELLOW) return `${name} process is having issues`;
   if (status === Status.RED) return `${name} process has failed to start`;
-  return `${name} process is pending`;
+  return `${name} process is stopped`;
 };
 
 const getSupervisorStatus = async (name, process) => {
@@ -47,12 +47,17 @@ const getSupervisorStatus = async (name, process) => {
 const getAPIStatus = async () => {
   try {
     const strapiResponse = JSON.parse((await shellExec('curl http://app/api')).stdout);
-    if (strapiResponse && strapiResponse.message === 'Not Found') {
+    if (strapiResponse && strapiResponse.error?.message === 'Not Found') {
       return {
         status: Status.GREEN,
         message: 'Strapi API is running',
       };
     }
+
+    return {
+      status: Status.RED,
+      message: 'Strapi API is not responding',
+    };
   } catch {
     return {
       status: Status.RED,
@@ -63,13 +68,18 @@ const getAPIStatus = async () => {
 
 const getWWWStatus = async () => {
   try {
-    const nextjsResponse = JSON.parse((await shellExec('curl http://app')).stdout);
+    const nextjsResponse = (await shellExec('curl http://app')).stdout;
     if (nextjsResponse && nextjsResponse.includes('__NEXT_DATA__')) {
       return {
         status: Status.GREEN,
         message: 'Next.js is running',
       };
     }
+
+    return {
+      status: Status.RED,
+      message: 'Next.js is not responding',
+    };
   } catch {
     return {
       status: Status.RED,
@@ -78,52 +88,56 @@ const getWWWStatus = async () => {
   }
 };
 
-const apiProcessStatus = await getSupervisorStatus('Strapi', 'api');
+const getStatus = async () => {
+  const apiProcessStatus = await getSupervisorStatus('Strapi', 'api');
 
-let apiStatus = {
-  identifier: 'api',
-  name: 'Strapi',
-  description: 'Strapi API',
-  items: [],
-  ...apiProcessStatus,
+  let apiStatus = {
+    identifier: 'api',
+    name: 'Strapi',
+    description: 'Strapi API',
+    items: [],
+    ...apiProcessStatus,
+  };
+
+  if (apiProcessStatus.status === Status.GREEN) {
+    apiStatus = { ...apiStatus, ...(await getAPIStatus()) };
+  }
+
+  const wwwProcessStatus = await getSupervisorStatus('Next.js', 'www');
+
+  let wwwStatus = {
+    identifier: 'www',
+    name: 'Next.js',
+    description: 'Next.js site',
+    items: [],
+    ...wwwProcessStatus,
+  };
+
+  if (wwwProcessStatus.status === Status.GREEN) {
+    wwwStatus = { ...wwwStatus, ...(await getWWWStatus()) };
+  }
+
+  const proxyProcessStatus = await getSupervisorStatus('Proxy', 'proxy');
+
+  let proxyStatus = {
+    identifier: 'proxy',
+    name: 'Proxy',
+    description: 'Traefik proxy routing Strapi & Next.js traffic',
+    items: [],
+    ...proxyProcessStatus,
+  };
+
+  const status = {
+    diploiStatusVersion: 1,
+    items: [apiStatus, wwwStatus, proxyStatus],
+  };
+
+  return status;
 };
 
-if (apiProcessStatus.status === Status.GREEN) {
-  apiStatus = { ...apiStatus, ...(await getAPIStatus()) };
-}
-
-const wwwProcessStatus = await getSupervisorStatus('Next.js', 'www');
-
-let wwwStatus = {
-  identifier: 'www',
-  name: 'Next.js',
-  description: 'Next.js site',
-  items: [],
-  ...wwwProcessStatus,
-};
-
-if (wwwProcessStatus.status === Status.GREEN) {
-  wwwStatus = { ...wwwStatus, ...(await getWWWStatus()) };
-}
-
-const proxyProcessStatus = await getSupervisorStatus('Proxy', 'proxy');
-
-let proxyStatus = {
-  identifier: 'proxy',
-  name: 'Proxy',
-  description: 'Traefik proxy routing Strapi & Next.js traffic',
-  items: [],
-  ...proxyProcessStatus,
-};
-
-const status = {
-  diploiStatusVersion: 1,
-  items: [apiStatus, wwwStatus, proxyStatus],
-};
-
-const requestListener = (req, res) => {
+const requestListener = async (req, res) => {
   res.writeHead(200);
-  res.end(JSON.stringify(status));
+  res.end(JSON.stringify(await getStatus()));
 };
 
 const server = http.createServer(requestListener);
